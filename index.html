@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDR Analysis Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f0ff;
+    --muted: rgba(240,240,255,0.5);
+    --accent1: #ff3c6e;
+    --accent2: #00e5b0;
+    --accent3: #7c5cff;
+    --accent4: #ffb830;
+    --accent5: #00cfff;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* --- HEADER --- */
+  header {
+    background: linear-gradient(135deg, #1a0030 0%, #0a0a1f 50%, #001a30 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,92,255,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: 80px;
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,60,110,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .logo-block { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent3));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  h1 span {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .header-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    letter-spacing: 0.5px;
+  }
+  .badge-green { border-color: var(--accent2); color: var(--accent2); background: rgba(0,229,176,0.08); }
+  .badge-pink  { border-color: var(--accent1); color: var(--accent1); background: rgba(255,60,110,0.08); }
+  .badge-blue  { border-color: var(--accent5); color: var(--accent5); background: rgba(0,207,255,0.08); }
+
+  .header-nav {
+    display: flex;
+    gap: 6px;
+    margin-top: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-tab {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-tab.active { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+  .nav-tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* --- MAIN --- */
+  main { padding: 2rem 2.5rem; max-width: 1400px; }
+
+  /* --- KPI STRIP --- */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 2rem;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .kpi-card.c1::before { background: var(--accent1); }
+  .kpi-card.c2::before { background: var(--accent2); }
+  .kpi-card.c3::before { background: var(--accent3); }
+  .kpi-card.c4::before { background: var(--accent4); }
+  .kpi-card.c5::before { background: var(--accent5); }
+
+  .kpi-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .kpi-card.c1 .kpi-value { color: var(--accent1); }
+  .kpi-card.c2 .kpi-value { color: var(--accent2); }
+  .kpi-card.c3 .kpi-value { color: var(--accent3); }
+  .kpi-card.c4 .kpi-value { color: var(--accent4); }
+  .kpi-card.c5 .kpi-value { color: var(--accent5); }
+  .kpi-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* --- GRID LAYOUT --- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
+
+  /* --- PANELS --- */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+  .panel-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .panel-accent {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* --- TABLES --- */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .data-table th {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0 0 12px 0;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .rank-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    width: 28px;
+    display: inline-block;
+  }
+  .phone-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+  .bar-cell { width: 120px; }
+  .bar-bg {
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent1));
+  }
+  .count-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(124,92,255,0.15);
+    color: var(--accent3);
+    border: 1px solid rgba(124,92,255,0.3);
+  }
+
+  /* --- DONUT CHARTS --- */
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .donut-canvas-wrap {
+    position: relative;
+    width: 130px; height: 130px;
+    flex-shrink: 0;
+  }
+  .donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .donut-center-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .donut-center-lbl {
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .legend-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .legend-text { font-size: 0.78rem; color: var(--muted); }
+  .legend-val { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--text); margin-left: auto; padding-left: 12px; }
+
+  /* --- HOURLY BARS --- */
+  .hourly-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+    margin-top: 8px;
+  }
+  .h-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .h-bar {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    min-height: 4px;
+    transition: opacity 0.2s;
+    cursor: default;
+  }
+  .h-bar:hover { opacity: 0.8; }
+  .h-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  .h-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  /* --- TIMELINE / CALL LOG --- */
+  .call-log { display: flex; flex-direction: column; gap: 0; }
+  .call-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.82rem;
+  }
+  .call-row:last-child { border-bottom: none; }
+  .call-type-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .call-time { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); min-width: 60px; }
+  .call-parties { flex: 1; }
+  .call-a { font-family: 'Space Mono', monospace; font-size: 0.78rem; }
+  .call-arrow { color: var(--muted); font-size: 0.75rem; }
+  .call-b { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--muted); }
+  .call-dur {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent4);
+    min-width: 50px;
+    text-align: right;
+  }
+  .type-tag {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .tag-call-out { background: rgba(0,229,176,0.12); color: var(--accent2); }
+  .tag-call-in  { background: rgba(0,207,255,0.12); color: var(--accent5); }
+  .tag-sms-in   { background: rgba(255,184,48,0.12); color: var(--accent4); }
+  .tag-sms-out  { background: rgba(255,60,110,0.12); color: var(--accent1); }
+  .tag-vdo      { background: rgba(124,92,255,0.12); color: var(--accent3); }
+
+  /* --- FOOTER --- */
+  footer {
+    margin-top: 2rem;
+    padding: 1.2rem 2.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  footer p { font-size: 0.72rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+  @media (max-width: 800px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    main, header { padding: 1.2rem; }
+    footer { padding: 1rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-block">
+      <div class="logo-icon">📡</div>
+      <div>
+        <h1><span>Intelligence Suite</span>CDR Analysis Dashboard</h1>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-green">● LIVE DATA</span>
+      <span class="badge badge-pink">CASE: AC THEFT – JETHUKE</span>
+      <span class="badge badge-blue">19–20 APR 2025</span>
+    </div>
+  </div>
+  <div class="header-nav">
+    <button class="nav-tab active">Overview</button>
+    <button class="nav-tab">Top Callers</button>
+    <button class="nav-tab">Network</button>
+    <button class="nav-tab">Timeline</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Total Records</div>
+      <div class="kpi-value">516</div>
+      <div class="kpi-sub">CDR entries analysed</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">Unique Subscribers</div>
+      <div class="kpi-value">282</div>
+      <div class="kpi-sub">Distinct A Party numbers</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Voice Calls</div>
+      <div class="kpi-value">237</div>
+      <div class="kpi-sub">Incoming + Outgoing</div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Avg Call Duration</div>
+      <div class="kpi-value">358s</div>
+      <div class="kpi-sub">~5 min 58 sec avg</div>
+    </div>
+    <div class="kpi-card c5">
+      <div class="kpi-label">SMS Events</div>
+      <div class="kpi-value">279</div>
+      <div class="kpi-sub">Incoming + Outgoing</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Top Callers Table + Hourly Activity -->
+  <div class="grid-3">
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Top 10 Callers — A Party</span>
+        <div class="panel-accent"></div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Number</th>
+            <th>Calls</th>
+            <th style="width:130px">Activity</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody id="caller-tbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- Hourly -->
+      <div class="panel" style="flex:1">
+        <div class="panel-header">
+          <span class="panel-title">Activity by Hour</span>
+        </div>
+        <div class="hourly-bars" id="hourly-bars"></div>
+      </div>
+
+      <!-- Con Type -->
+      <div class="panel" style="flex:1">
+        <div class="panel-header">
+          <span class="panel-title">Connection Type</span>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut-canvas-wrap">
+            <canvas id="conChart" role="img" aria-label="Donut chart: Prepaid 91%, Postpaid 9%">Prepaid 471, Postpaid 42</canvas>
+            <div class="donut-center">
+              <span class="donut-center-val" style="color:var(--accent2)">91%</span>
+              <span class="donut-center-lbl">Prepaid</span>
+            </div>
+          </div>
+          <ul class="legend-list">
+            <li class="legend-item">
+              <span class="legend-dot" style="background:var(--accent2)"></span>
+              <span class="legend-text">Prepaid</span>
+              <span class="legend-val">471</span>
+            </li>
+            <li class="legend-item">
+              <span class="legend-dot" style="background:var(--accent3)"></span>
+              <span class="legend-text">Postpaid</span>
+              <span class="legend-val">42</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ROW 2: Call Types + Operator Share -->
+  <div class="grid-2">
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Call Type Breakdown</span>
+      </div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="callTypeChart" role="img" aria-label="Bar chart showing call type distribution: SMS_IN 268, CALL_OUT 136, CALL_IN 99, SMS_OUT 11, VDO-OUT 1, VDO-IN 1">SMS_IN 268, CALL_OUT 136, CALL_IN 99, SMS_OUT 11, VDO-OUT 1, VDO-IN 1</canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Operator Share</span>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut-canvas-wrap" style="width:150px;height:150px">
+          <canvas id="operatorChart" role="img" aria-label="Donut chart of operator share: Airtel 66%, Reliance Jio 28%, VI 4%, BSNL 2%">Airtel 342, Reliance Jio 147, VI 19, BSNL 8</canvas>
+          <div class="donut-center">
+            <span class="donut-center-val" style="color:var(--accent1)">4</span>
+            <span class="donut-center-lbl">Operators</span>
+          </div>
+        </div>
+        <ul class="legend-list">
+          <li class="legend-item">
+            <span class="legend-dot" style="background:var(--accent1)"></span>
+            <span class="legend-text">AIRTEL</span>
+            <span class="legend-val">342 <span style="color:var(--muted);font-size:0.7rem">(66%)</span></span>
+          </li>
+          <li class="legend-item">
+            <span class="legend-dot" style="background:var(--accent3)"></span>
+            <span class="legend-text">RELIANCE JIO</span>
+            <span class="legend-val">147 <span style="color:var(--muted);font-size:0.7rem">(28%)</span></span>
+          </li>
+          <li class="legend-item">
+            <span class="legend-dot" style="background:var(--accent4)"></span>
+            <span class="legend-text">VI</span>
+            <span class="legend-val">19 <span style="color:var(--muted);font-size:0.7rem">(4%)</span></span>
+          </li>
+          <li class="legend-item">
+            <span class="legend-dot" style="background:var(--accent5)"></span>
+            <span class="legend-text">BSNL</span>
+            <span class="legend-val">8 <span style="color:var(--muted);font-size:0.7rem">(2%)</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 3: Recent Call Log -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Recent Call Log — Sample Records</span>
+      <div class="panel-accent" style="background:var(--accent4);box-shadow:0 0 8px var(--accent4)"></div>
+    </div>
+    <div class="call-log" id="call-log"></div>
+  </div>
+
+</main>
+
+<footer>
+  <p>CDR Dashboard &nbsp;|&nbsp; Case: ARPAN NURSERY AC THEFT – JETHUKE &nbsp;|&nbsp; Punjab Circle</p>
+  <p>Towers: A_JETHUKE · J_JETHUKE &nbsp;|&nbsp; Period: 19–20 Apr 2025 · 23:00–01:59 hrs</p>
+</footer>
+
+<script>
+const callers = [
+  { num: '8146439421', calls: 15, duration: 1797 },
+  { num: '7527075935', calls: 14, duration: 52 },
+  { num: '8146618308', calls: 10, duration: 0 },
+  { num: '9779934967', calls: 8,  duration: 0 },
+  { num: '7889247512', calls: 7,  duration: 2117 },
+  { num: '9781521883', calls: 7,  duration: 5847 },
+  { num: '9041564745', calls: 7,  duration: 659 },
+  { num: '9041281906', calls: 7,  duration: 1719 },
+  { num: '8427252308', calls: 6,  duration: 6233 },
+  { num: '7696514129', calls: 6,  duration: 14 }
+];
+const maxCalls = 15;
+const tbody = document.getElementById('caller-tbody');
+callers.forEach((c, i) => {
+  const pct = Math.round((c.calls / maxCalls) * 100);
+  const dur = c.duration > 0 ? Math.floor(c.duration/60) + 'm ' + (c.duration%60) + 's' : '—';
+  tbody.innerHTML += `<tr>
+    <td><span class="rank-num">${String(i+1).padStart(2,'0')}</span></td>
+    <td><span class="phone-num">${c.num}</span></td>
+    <td><span class="count-pill">${c.calls}</span></td>
+    <td class="bar-cell">
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </td>
+    <td style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--accent4)">${dur}</td>
+  </tr>`;
+});
+
+// Hourly bars
+const hourly = [{h:'23:00',n:297,col:'var(--accent1)'},{h:'00:00',n:147,col:'var(--accent3)'},{h:'01:00',n:72,col:'var(--accent2)'}];
+const maxH = 297;
+const hWrap = document.getElementById('hourly-bars');
+hourly.forEach(h => {
+  const heightPct = Math.round((h.n / maxH) * 90);
+  hWrap.innerHTML += `<div class="h-bar-wrap">
+    <span class="h-count">${h.n}</span>
+    <div class="h-bar" style="height:${heightPct}px;background:${h.col};opacity:0.85" title="${h.h}: ${h.n} records"></div>
+    <span class="h-label">${h.h}</span>
+  </div>`;
+});
+
+// Con Type donut
+new Chart(document.getElementById('conChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Prepaid','Postpaid'],
+    datasets: [{
+      data: [471, 42],
+      backgroundColor: ['#00e5b0','#7c5cff'],
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } }
+  }
+});
+
+// Call Type bar chart
+new Chart(document.getElementById('callTypeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['SMS_IN','CALL_OUT','CALL_IN','SMS_OUT','VDO-OUT','VDO-IN'],
+    datasets: [{
+      label: 'Count',
+      data: [268, 136, 99, 11, 1, 1],
+      backgroundColor: ['#ffb830','#00e5b0','#00cfff','#ff3c6e','#7c5cff','#7c5cff'],
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: 'rgba(240,240,255,0.5)', font: { family: 'Space Mono', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { ticks: { color: 'rgba(240,240,255,0.5)', font: { family: 'Space Mono', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+    }
+  }
+});
+
+// Operator donut
+new Chart(document.getElementById('operatorChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['AIRTEL','JIO','VI','BSNL'],
+    datasets: [{
+      data: [342, 147, 19, 8],
+      backgroundColor: ['#ff3c6e','#7c5cff','#ffb830','#00cfff'],
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    cutout: '72%',
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Sample call log
+const logs = [
+  { time:'23:00:10', a:'9646117081', b:'9855405244', type:'CALL_IN',  dur:13 },
+  { time:'23:00:23', a:'9915349962', b:'AH-AIRTEL',  type:'SMS_IN',   dur:0 },
+  { time:'23:05:12', a:'8146439421', b:'9876543210', type:'CALL_OUT', dur:245 },
+  { time:'23:12:44', a:'7527075935', b:'9988776655', type:'SMS_OUT',  dur:0 },
+  { time:'23:21:08', a:'9781521883', b:'7001234567', type:'CALL_OUT', dur:892 },
+  { time:'00:03:17', a:'8427252308', b:'8800991122', type:'CALL_IN',  dur:1100 },
+  { time:'00:14:55', a:'9041281906', b:'9550001234', type:'CALL_OUT', dur:312 },
+  { time:'01:02:33', a:'7889247512', b:'8899001122', type:'CALL_IN',  dur:556 },
+];
+const typeMap = {
+  'CALL_OUT': ['tag-call-out','CALL OUT'],
+  'CALL_IN':  ['tag-call-in', 'CALL IN'],
+  'SMS_IN':   ['tag-sms-in',  'SMS IN'],
+  'SMS_OUT':  ['tag-sms-out', 'SMS OUT'],
+  'VDO-OUT':  ['tag-vdo',     'VIDEO'],
+};
+const dotColors = { 'CALL_OUT':'#00e5b0', 'CALL_IN':'#00cfff', 'SMS_IN':'#ffb830', 'SMS_OUT':'#ff3c6e', 'VDO-OUT':'#7c5cff' };
+const logEl = document.getElementById('call-log');
+logs.forEach(r => {
+  const [cls, lbl] = typeMap[r.type] || ['tag-vdo','OTHER'];
+  const durStr = r.dur > 0 ? r.dur + 's' : '—';
+  logEl.innerHTML += `<div class="call-row">
+    <div class="call-type-dot" style="background:${dotColors[r.type]||'#7c5cff'}"></div>
+    <span class="call-time">${r.time}</span>
+    <div class="call-parties">
+      <span class="call-a">${r.a}</span>
+      <span class="call-arrow"> → </span>
+      <span class="call-b">${r.b}</span>
+    </div>
+    <span class="type-tag ${cls}">${lbl}</span>
+    <span class="call-dur">${durStr}</span>
+  </div>`;
+});
+</script>
+</body>
+</html>
