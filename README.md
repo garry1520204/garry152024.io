@@ -1,241 +1,413 @@
-html<!DOCTYPE html>
+
+                 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call Detail Record (CDR) Location Analysis Report</title>
-    <style>
-        :root {
-            --primary-color: #1e293b;
-            --secondary-color: #0f172a;
-            --accent-color: #2563eb;
-            --text-color: #334155;
-            --light-bg: #f8fafc;
-            --border-color: #e2e8f0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--light-bg);
-            color: var(--text-color);
-        }
+  <!-- SEO -->
+  <title>Modern Responsive Website</title>
+  <meta name="description" content="Professional modern responsive website with animations and SEO optimization." />
+  <meta name="keywords" content="web design, responsive website, modern UI UX, SEO website" />
+  <meta name="author" content="Your Name" />
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+  <!-- Open Graph -->
+  <meta property="og:title" content="Modern Responsive Website" />
+  <meta property="og:description" content="Professional UI/UX responsive website." />
+  <meta property="og:type" content="website" />
 
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-            letter-spacing: 0.5px;
-        }
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      scroll-behavior:smooth;
+    }
 
-        .case-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 6px;
-        }
+    body{
+      font-family: Arial, sans-serif;
+      background:#0f172a;
+      color:white;
+      line-height:1.6;
+      overflow-x:hidden;
+    }
 
-        .summary-item span {
-            display: block;
-            font-size: 12px;
-            color: #cbd5e1;
-            text-transform: uppercase;
-        }
+    a{
+      text-decoration:none;
+      color:white;
+    }
 
-        .summary-item strong {
-            font-size: 16px;
-            color: #ffffff;
-        }
+    img{
+      max-width:100%;
+    }
 
-        .card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
-        }
+    .container{
+      width:90%;
+      max-width:1200px;
+      margin:auto;
+    }
 
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--secondary-color);
-            margin-top: 0;
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--light-bg);
-            padding-bottom: 10px;
-        }
+    /* NAVBAR */
+    nav{
+      position:fixed;
+      width:100%;
+      top:0;
+      left:0;
+      background:rgba(15,23,42,0.9);
+      backdrop-filter:blur(10px);
+      z-index:1000;
+    }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
+    .nav-container{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:18px 0;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 14px;
-        }
+    .logo{
+      font-size:1.5rem;
+      font-weight:bold;
+      color:#38bdf8;
+    }
 
-        th {
-            background-color: var(--light-bg);
-            color: var(--secondary-color);
-            font-weight: 600;
-            padding: 12px 10px;
-            border-bottom: 2px solid var(--border-color);
-        }
+    .nav-links{
+      display:flex;
+      gap:25px;
+    }
 
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
+    .nav-links a{
+      transition:0.3s;
+    }
 
-        tr:hover {
-            background-color: #f1f5f9;
-        }
+    .nav-links a:hover{
+      color:#38bdf8;
+    }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            text-align: center;
-        }
+    .menu-toggle{
+      display:none;
+      font-size:2rem;
+      cursor:pointer;
+    }
 
-        .badge-incoming { background-color: #dcfce7; color: #15803d; }
-        .badge-outgoing { background-color: #dbeafe; color: #1d4ed8; }
-        .badge-sms { background-color: #fef9c3; color: #a16207; }
+    /* HERO */
+    .hero{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:100px 20px;
+      background:
+      linear-gradient(rgba(15,23,42,.7), rgba(15,23,42,.9)),
+      url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1400') center/cover;
+    }
 
-        .btn-map {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
+    .hero-content{
+      animation:fadeUp 1s ease;
+    }
 
-        .btn-map:hover {
-            background-color: #1d4ed8;
-        }
+    .hero h1{
+      font-size:4rem;
+      margin-bottom:20px;
+    }
 
-        .btn-map::before {
-            content: "📍";
-            margin-right: 4px;
-        }
-    </style>
+    .hero p{
+      max-width:700px;
+      margin:auto;
+      margin-bottom:30px;
+      color:#cbd5e1;
+    }
+
+    .btn{
+      display:inline-block;
+      background:#38bdf8;
+      color:#0f172a;
+      padding:14px 28px;
+      border-radius:50px;
+      font-weight:bold;
+      transition:0.3s;
+    }
+
+    .btn:hover{
+      transform:translateY(-3px);
+      background:#0ea5e9;
+    }
+
+    /* SECTION */
+    section{
+      padding:100px 0;
+    }
+
+    .section-title{
+      text-align:center;
+      margin-bottom:60px;
+      font-size:2.5rem;
+    }
+
+    /* SERVICES */
+    .services{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:30px;
+    }
+
+    .card{
+      background:#1e293b;
+      padding:30px;
+      border-radius:20px;
+      transition:0.4s;
+      border:1px solid transparent;
+    }
+
+    .card:hover{
+      transform:translateY(-10px);
+      border-color:#38bdf8;
+    }
+
+    .card h3{
+      margin-bottom:15px;
+      color:#38bdf8;
+    }
+
+    /* ABOUT */
+    .about{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:50px;
+      align-items:center;
+    }
+
+    .about img{
+      border-radius:20px;
+    }
+
+    /* CONTACT */
+    form{
+      max-width:700px;
+      margin:auto;
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+    }
+
+    input, textarea{
+      padding:16px;
+      border:none;
+      border-radius:10px;
+      background:#1e293b;
+      color:white;
+    }
+
+    textarea{
+      resize:none;
+      height:150px;
+    }
+
+    button{
+      border:none;
+      cursor:pointer;
+    }
+
+    /* FOOTER */
+    footer{
+      text-align:center;
+      padding:30px 20px;
+      background:#020617;
+      color:#94a3b8;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp{
+      from{
+        opacity:0;
+        transform:translateY(50px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+
+      .hero h1{
+        font-size:2.5rem;
+      }
+
+      .about{
+        grid-template-columns:1fr;
+      }
+
+      .nav-links{
+        position:absolute;
+        top:70px;
+        right:-100%;
+        flex-direction:column;
+        background:#0f172a;
+        width:220px;
+        padding:20px;
+        transition:0.4s;
+      }
+
+      .nav-links.active{
+        right:20px;
+      }
+
+      .menu-toggle{
+        display:block;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
+  <!-- NAVBAR -->
+  <nav>
+    <div class="container nav-container">
+      <div class="logo">Brand.</div>
 
-    <!-- Header & Investigation Summary -->
-    <header>
-        <h1>CDR Location Intelligence Analytics</h1>
-        <div class="case-summary">
-            <div class="summary-item">
-                <span>Case Reference</span>
-                <strong>CASE-2026-89A</strong>
-            </div>
-            <div class="summary-item">
-                <span>Target Mobile Number</span>
-                <strong>+91 98765 43210</strong>
-            </div>
-            <div class="summary-item">
-                <span>Target IMEI / IMSI</span>
-                <strong>86023404... / 40445...</strong>
-            </div>
-            <div class="summary-item">
-                <span>Service Provider</span>
-                <strong>Jio Telecom (Punjab Circle)</strong>
-            </div>
-        </div>
-    </header>
+      <div class="nav-links" id="navLinks">
+        <a href="#home">Home</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </div>
 
-    <!-- Geographic Location Analysis Grid -->
-    <div class="card">
-        <div class="card-title">Cell Tower Log & Spatial Footprint</div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date & Time</th>
-                        <th>Call Type</th>
-                        <th>Dialled/Received Party</th>
-                        <th>Duration</th>
-                        <th>Cell ID (CID)</th>
-                        <th>LAC / TAC</th>
-                        <th>Tower Physical Address</th>
-                        <th>Coordinates (Lat, Long)</th>
-                        <th>Map Link</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Entry 1 -->
-                    <tr>
-                        <td>2026-05-21 09:14:22</td>
-                        <td><span class="badge badge-outgoing">Outgoing</span></td>
-                        <td>+91 98765 00112</td>
-                        <td>02:15 Min</td>
-                        <td>43211</td>
-                        <td>5612</td>
-                        <td>Phase 8B, Industrial Area, Mohali</td>
-                        <td>30.7114, 76.6912</td>
-                        <td><a href="https://google.com" target="_blank" class="btn-map">View Map</a></td>
-                    </tr>
-                    <!-- Entry 2 -->
-                    <tr>
-                        <td>2026-05-21 11:30:05</td>
-                        <td><span class="badge badge-incoming">Incoming</span></td>
-                        <td>+91 98765 00155</td>
-                        <td>00:45 Min</td>
-                        <td>43215</td>
-                        <td>5612</td>
-                        <td>Sector 62, Near Library, Mohali</td>
-                        <td>30.7241, 76.7104</td>
-                        <td><a href="https://google.com" target="_blank" class="btn-map">View Map</a></td>
-                    </tr>
-                    <!-- Entry 3 -->
-                    <tr>
-                        <td>2026-05-21 14:02:10</td>
-                        <td><span class="badge badge-sms">SMS Record</span></td>
-                        <td>+91 98765 99887</td>
-                        <td>-</td>
-                        <td>88412</td>
-                        <td>5930</td>
-                        <td>Sirhind Road, Near Bara Phool, Punjab</td>
-                        <td>30.6558, 76.4883</td>
-                        <td><a href="https://google.com" target="_blank" class="btn-map">View Map</a></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+      <div class="menu-toggle" id="menuToggle">
+        ☰
+      </div>
     </div>
+  </nav>
 
-</div>
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <h1>Build Stunning Digital Experiences</h1>
+      <p>
+        Modern responsive website with fast performance,
+        SEO optimization, smooth animations, and professional UI/UX.
+      </p>
+      <a href="#contact" class="btn">Get Started</a>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="container">
+      <h2 class="section-title">Our Services</h2>
+
+      <div class="services">
+
+        <div class="card">
+          <h3>Web Design</h3>
+          <p>
+            Beautiful modern interfaces designed for performance and conversions.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Development</h3>
+          <p>
+            Fast and scalable websites optimized for all devices.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>SEO Optimization</h3>
+          <p>
+            Improve rankings and visibility with technical SEO best practices.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container about">
+
+      <div>
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200" alt="Team">
+      </div>
+
+      <div>
+        <h2 class="section-title">About Us</h2>
+
+        <p>
+          We create premium digital products with clean code,
+          smooth user experiences, and high-speed performance.
+        </p>
+
+        <br>
+
+        <p>
+          Our mission is to help businesses grow online through
+          modern web technologies and strategic design.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+
+      <h2 class="section-title">Contact Us</h2>
+
+      <form>
+        <input type="text" placeholder="Your Name" required>
+
+        <input type="email" placeholder="Your Email" required>
+
+        <textarea placeholder="Your Message"></textarea>
+
+        <button class="btn">Send Message</button>
+      </form>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 Modern Website. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const navLinks = document.getElementById("navLinks");
+
+    menuToggle.addEventListener("click", () => {
+      navLinks.classList.toggle("active");
+    });
+
+    // Smooth reveal animation
+    const cards = document.querySelectorAll('.card');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.style.opacity = "1";
+          entry.target.style.transform = "translateY(0)";
+        }
+      });
+    });
+
+    cards.forEach(card => {
+      card.style.opacity = "0";
+      card.style.transform = "translateY(40px)";
+      card.style.transition = "0.6s ease";
+      observer.observe(card);
+    });
+  </script>
 
 </body>
 </html>
+             
